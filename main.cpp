@@ -1,6 +1,12 @@
 #include <iostream>
+#include "GameOfLife_csci2312.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+
+    csci2312::GameOfLife game;
+
+    game.run();
+
+    std::cout << game;
     return 0;
 }
