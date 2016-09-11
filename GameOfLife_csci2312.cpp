@@ -1,5 +1,7 @@
 
 #include <fstream>
+#include <chrono>   // milliseconds
+#include <thread>   // thread.sleep_for()
 #include <cstdlib>  // srand, rand
 #include <ctime>    // time(), used to seed srand
 
@@ -173,16 +175,12 @@ void GameOfLife::cellsFate(int r, int c, int neighbors) {
         // if alive run this logic
 
         // cell only lives if 2 or 3 neighbors are alive, otherwise dies
-        if (neighbors != 2 && neighbors != 3){
-            nextLife[r][c].setState(false);
-        }
+        nextLife[r][c].setState(neighbors == 2 || neighbors == 3);
     }else{
         // if the cell is dead run this logic
 
         // if the cell has exactly 3 neighbors alive, bring it to life
-        if (neighbors == 3){
-            nextLife[r][c].setState(true);
-        }
+        nextLife[r][c].setState(neighbors == 3);
     }
 }
 
@@ -199,8 +197,12 @@ void GameOfLife::checkCell(int r, int c){
                 // if the column is on the board check, else ignore
                 if (j >= 0 && j < boardSize){
                     // if the neighbor cell is alive, add 1 to the tally
-                    if (currentLife[i][j].getState()){
-                        neighborsAlive++;
+                    if (i != r || j != c){
+                        // don't count the cell itself
+                        if (currentLife[i][j].getState()){
+                            // if a cell is alive, add to the tally
+                            neighborsAlive++;
+                        }
                     }
                 }
             }
@@ -232,6 +234,8 @@ namespace csci2312 {
         }
 
         out << std::endl;
+        // sleep between printing to show board more clearly
+        std::this_thread::sleep_for(std::chrono::milliseconds(550));
         return out;
     }
 

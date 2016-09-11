@@ -5,8 +5,8 @@ int main() {
 
     csci2312::GameOfLife game (10);
 
-    game.seedBoard(20);
+    game.seedBoard("seed_file.txt");
 
-    game.run(5);
+    game.run(20);
     return 0;
 }
