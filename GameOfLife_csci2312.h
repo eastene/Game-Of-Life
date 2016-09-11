@@ -73,7 +73,7 @@
 //
 //     GameOfLife(size_t boardSize);
 //       PRECONDITION: boardSize is not greater than MAX_BOARD  
-//       POSTCONDITION: Creates a boardSize-size matrix of dark cells
+//       POSTCONDITION: Creates a boardSize-size matrix of dark cells. Sets boardSize private member.
 //
 // MODIFIERS/MUTATORS:
 //   
@@ -90,6 +90,10 @@
 //                   
 //   void run( );
 //     FUNCTIONALITY: Starts the simulation.  Asks a user if to generate another iteration, or if to end
+//     POSTCONDITION: Simulation has run
+
+//   void run(unsigned int numberOfIterations);
+//     FUNCTIONALITY: Starts the simulation.  
 //     POSTCONDITION: Simulation has run
 //
 // =================== PRIVATE CLASS MEMBERS - GameOfLife
@@ -118,19 +122,21 @@ namespace csci2312
 
 	class Cell
 	{
+	
 	public:
 		static const char alive ='o';   // alive image
 		static const char dead = '-';  // dead image
-
-        Cell();
-		Cell(char face);
+        
+		Cell();
+		Cell(bool state);  
 		~Cell();
 
+		// Accessors have no intention to modify the object, so it is a good practice to make them 'const' functions
 		bool getState() const;
+
 		void setState(bool newState);
 
-        //  Display cell's state with alive/dead face
-        ostream& operator << (ostream& out);
+		void displayBoard();
 
 	private:
 		bool state;
@@ -140,7 +146,7 @@ namespace csci2312
 
     class GameOfLife
     {
-     
+		
     public:
 		static const unsigned int MAX_BOARD = 30;
 	
@@ -150,25 +156,56 @@ namespace csci2312
 	
 		int seedBoard(string fileName);
 		int seedBoard(size_t seeds);
-        void cellsFate(int r, int c, int neighbors);
-        void checkCell(int r, int c);
-        void nextGeneration();
 		void run();
-        //  Display current board
-        friend ostream& operator << (ostream& out, GameOfLife& board);
+		void run(unsigned int numberOfIterations);
 
-    private:
+		// A const(!) accessor method that returns a handle to the private currentLife array. 
+		// The return type must also be 'const' because we return a pointer to a static array, and these are fixed
+		// It is just an example.  It is not needed if we have a friend operator.		
+		//const Cell** getCurrentLife() const  { return currentLife; };
+
+		// friend operator can access private members of GameOfLife
+		friend ostream& operator << (ostream& out, const GameOfLife& board);
 		
+    private:
+
+        void cellsFate(int r, int c, int neighbors); // accessory function to checkCell
+        void checkCell(int r, int c); // accessory function to nextGeneration
+        void nextGeneration();
+
 		Cell currentLife[MAX_BOARD][MAX_BOARD];
 		Cell nextLife[MAX_BOARD][MAX_BOARD];
-	    Cell temp[MAX_BOARD][MAX_BOARD]; // used for swapping the boards
 
+		// Example how to declare variable c as a pointer/handle to our array of Cells of size MAX_BOARD
+		// The accessor method getCurrentLife() above uses the same syntax for the return type
+		const Cell (*c)[MAX_BOARD] = currentLife;
+	
 	    size_t boardSize;       // Board size requested in the constructor	
+
     };
           
     // NON-MEMBER OUTPUT FUNCTIONS
 
     //  Display cell's state with alive/dead face
 	ostream& operator << (ostream& out, const Cell& cell);
+
+	
+    //  Display current board.  Implementation needs to be moved to the .cpp file, only here temporarily to demo
+	// ostream& operator << (ostream& out, const GameOfLife& board) {
+
+		// Example of how to invoke the accessor method getCurrentLife() and access an element of the board
+		// If we have an accessor, then the operator does not have to be a friend
+		//out << board.getCurrentLife()[0][0];
+
+		// If the operator is a friend, then any private data member (like currentLife)  can be accessed directly. 
+		//out << board.currentLife[0][0];
+
+		// Example how to access a cell's method.  
+		// The board comes in to this operator function with a 'const' qualifier in front of the board, which means that
+		// the function cannot alter the board.  Therefore only 'const' functions are allowed to operate on the baord. 
+		// So getState() accessor must be a 'const' function - please see its declaration above
+		//bool a = board.currentLife[1][2].getState()  ;
+
+	//}
         
 }

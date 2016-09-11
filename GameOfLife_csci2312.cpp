@@ -1,4 +1,8 @@
 
+#include <fstream>
+#include <cstdlib>  // srand, rand
+#include <ctime>    // time(), used to seed srand
+
 #include "GameOfLife_csci2312.h"
 
 using namespace csci2312;
@@ -6,6 +10,10 @@ using namespace csci2312;
 /*** CELL CLASS DEFINITIONS ***/
 Cell::Cell() {
 
+}
+
+Cell::Cell(bool state) {
+    this->state = state;
 }
 
 Cell::~Cell(){
@@ -21,6 +29,8 @@ void Cell::setState(bool newState) {
 }
 
 /*** GAMEOFLIFE CLASS DEFINITIONS ***/
+
+// Constructors
 GameOfLife::GameOfLife() {
     // set the board size to the maximum size
     boardSize = MAX_BOARD;
@@ -58,8 +68,102 @@ GameOfLife::GameOfLife(size_t boardSize) {
     }
 }
 
+// Destructor
 GameOfLife::~GameOfLife() {
 
+}
+
+// Public Methods
+int GameOfLife::seedBoard(string fileName) {
+    std::fstream seed_file(fileName, std::ios::in); // file containing a matrix of dead and/or alive cells
+    std::string line; // holds a line from the file to convert to the board
+    int row = 0; // row iterator, increased with each line of the file read
+
+    if (!seed_file){
+        // returns 1 if something goes wrong when opening the file
+        return 1;
+    }
+
+    while (!seed_file.eof()){
+        if (row > boardSize){
+            // too many lines in the seed_file, too large for matrix
+            return 1;
+        }
+
+        getline(seed_file, line);
+
+        if (line.size() > boardSize){
+            // seed board too large to read
+            return 1;
+        }
+
+        for (int col = 0; col < line.size(); col++){
+            // iterate through each character in the line and change the cell in the current life accordingly
+            if (line[col] == currentLife[row][col].alive){
+                // if the character in the seed file matches the character of an alive cell, make that cell alive
+                currentLife[row][col].setState(true);
+            }
+            else if (line[col] == currentLife[row][col].dead){
+                // if the character in the seed file matches the character of a dead cell, make that cell dead
+                currentLife[row][col].setState(false);
+            }else{
+                // character not recognized
+                return 1;
+            }
+        }
+
+        row++; // increment line count (which is also the row number in the matrix of cells)
+    }
+
+    // print out the now seeded board
+    std::cout << *this;
+    return 0; // success
+}
+
+int GameOfLife::seedBoard(size_t seeds) {
+    // check if seed is too large for matrix
+    if (seeds > (boardSize * boardSize)){
+        return 1;
+    }
+
+    // seed random number generator
+    srand(time(NULL));
+
+    // loop until all seed cells are filled
+    size_t x, y; // a randomly assigned row and column
+
+    while (seeds){
+        x = rand() % boardSize; // random number between 0 and boardSize - 1
+        y = rand() % boardSize; // random number between 0 and boardSize - 1
+
+        if (!currentLife[x][y].getState()){
+            // if the cell is not alive, make it alive, decrease number of seeded cells
+            currentLife[x][y].setState(true);
+            seeds--;
+        }
+
+        // otherwise, continue
+    }
+
+    // print out the now seeded board
+    std::cout << *this;
+    return 0; // success
+}
+
+// runs the game of life
+void GameOfLife::run() {
+    // iterate over each cell and generate the next generation
+    nextGeneration();
+    // print out this object to show update
+    std::cout << *this;
+}
+
+void GameOfLife::run(unsigned int numberOfIterations) {
+    for (int i = 0; i < numberOfIterations; i++){
+        nextGeneration();
+        // print out this object every iteration
+        std::cout << *this;
+    }
 }
 
 // decided the cells fate based on how many neighbors are alive
@@ -87,11 +191,11 @@ void GameOfLife::checkCell(int r, int c){
     int neighborsAlive = 0; // tally of the number of the cells neighbors that are alive
 
     // row iterator (looks at row above, on, and below current cell)
-    for (int i = r - 1; i < r + 1; i++){
+    for (int i = r - 1; i <= r + 1; i++){
         // if that row is in the board check, else ignore
         if (i >= 0 && i < boardSize){
             // column iterator (looks at column left, on, and right of the current cell)
-            for (int j = c - 1; j < c + 1; j++){
+            for (int j = c - 1; j <= c + 1; j++){
                 // if the column is on the board check, else ignore
                 if (j >= 0 && j < boardSize){
                     // if the neighbor cell is alive, add 1 to the tally
@@ -114,42 +218,32 @@ void GameOfLife::nextGeneration() {
         }
     }
 
-   /* // swap this generation with the next
-    temp = currentLife;
-    currentLife = nextLife;
-    nextLife = temp; */
+   // swap this generation with the next
+    std::swap(currentLife, nextLife);
 }
 
-// runs the game of life
-void GameOfLife::run() {
-    // iterate over each cell and generate the next generation
-    nextGeneration();
-}
-
-
-ostream& operator << (ostream& out, GameOfLife& board){
-    for (int i = 0; i < board.boardSize; i++){
-        for (int j = 0; j < board.boardSize; j++){
-            if (board.nextLife[i][j].getState()){
-                out << board.nextLife[i][j].alive;
-            }else{
-                out << board.nextLife[i][j].dead;
+namespace csci2312 {
+    ostream &operator<<(ostream &out, const GameOfLife &board) {
+        for (int i = 0; i < board.boardSize; i++) {
+            for (int j = 0; j < board.boardSize; j++) {
+                out << board.currentLife[i][j];
             }
+            out << std::endl;
         }
+
         out << std::endl;
+        return out;
     }
 
-    return out;
-}
+    ostream& operator << (ostream& out, const Cell& cell) {
+        if (cell.getState()) {
+            out << cell.alive;
+        } else {
+            out << cell.dead;
+        }
 
-ostream& Cell::operator << (ostream& out){
-    if (state){
-        out << alive;
-    }else{
-        out << dead;
+        return out;
     }
-
-    return out;
 }
 
 

@@ -3,10 +3,10 @@
 
 int main() {
 
-    csci2312::GameOfLife game;
+    csci2312::GameOfLife game (10);
 
-    game.run();
+    game.seedBoard(20);
 
-    std::cout << game;
+    game.run(5);
     return 0;
 }
