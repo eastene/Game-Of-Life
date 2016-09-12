@@ -32,6 +32,7 @@ void Cell::setState(bool newState) {
 
 /*** GAMEOFLIFE CLASS DEFINITIONS ***/
 
+// TODO: comment methods
 // Constructors
 GameOfLife::GameOfLife() {
     // set the board size to the maximum size
