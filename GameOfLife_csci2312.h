@@ -35,6 +35,9 @@
 //   [ OPTIONAL STUDENT TASK: briefly describe another, perhaps more efficient, implementation idea ]
 // - How will you go about game boundary conditions (edges and corners)?
 //   [ STUDENT TASK:  fill in your implementation approach ]
+//      I used if statements to check if the current row and col being checked lay within the boundaries of the game
+//      board, I used this approach so that I do not need to keep track of any cells beyond the size of the game board
+//
 // - How will you handle error conditions (when a method fails in any way)?
 //   A method with a known risk of failure will return a success/fail (zero/one) status.  
 //   Every calling layer will propagate the status code to the outer layer, and the most outer layer (the main) will exit

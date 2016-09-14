@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sstream>
 #include "GameOfLife_csci2312.h"
 
 using std::string;
@@ -7,7 +6,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 
-void seedGame(int boardSize, csci2312::GameOfLife &game);
+void seedGame(csci2312::GameOfLife &game);
 void runGame(csci2312::GameOfLife &game);
 
 int main() {
@@ -22,41 +21,34 @@ int main() {
     if (input.empty())
     {
         csci2312::GameOfLife game;
-        seedGame(30, game);
+        seedGame(game);
     }
     else
     {
         // create a game and transform the user input to int
         boardSize = std::stoi(input);
         csci2312::GameOfLife game (boardSize);
-        seedGame(boardSize, game);
+        seedGame(game);
     }
 
     return 0;
 }
 
-void seedGame(int boardSize, csci2312::GameOfLife &game){
+void seedGame(csci2312::GameOfLife &game){
     string input;
-    std::stringstream inCheck;
     int seedNum;
 
-    cout << "Enter a number of cells to seed the game with (default is gird size), or enter a file to seed the board "
-             << "with:" << endl;
+    cout << "Enter a number of cells to seed the game with or leave blank to use a predefined file: " << endl;
 
     getline(cin, input);
 
-    inCheck << input;
-    inCheck >> seedNum;
     if (input.empty())
     {
-        game.seedBoard(boardSize);
-    }
-    else if (inCheck.fail())
-    {
-        game.seedBoard(input);
+        game.seedBoard("seed_file.txt");
     }
     else
     {
+        seedNum = std::stoi(input);
         game.seedBoard(seedNum);
     }
 

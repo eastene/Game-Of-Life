@@ -9,31 +9,57 @@
 
 using namespace csci2312;
 
+
 /*** CELL CLASS DEFINITIONS ***/
+
+
+// default constructor, left blank
+// PRECONDITION: none
+//
+// POSTCONDITION: cell object will be initialized
 Cell::Cell() {
 
 }
 
+// overloaded constructor, creates a cell set to a given state
+// PRECONDITION: none
+//
+// POSTCONDITION: cell object will be initialized to the state passed as an argument
 Cell::Cell(bool state) {
     this->state = state;
 }
 
+// deconstructor, unused since no memory is allocated in this class
 Cell::~Cell(){
 
 }
 
+// returns the current state of this cell
+// PRECONDITION: none
+//
+// POSTCONDITION: true = alive, false = dead
 bool Cell::getState() const{
     return state;
 }
 
+// set this cell to alive or dead
+// PRECONDITION: none
+//
+// POSTCONDITION: cell will be set to passed state
 void Cell::setState(bool newState) {
     state = newState;
 }
 
+
 /*** GAMEOFLIFE CLASS DEFINITIONS ***/
 
-// TODO: comment methods
-// Constructors
+
+/*** Constructors ***/
+
+// defualt constructor, initializes game to 30 x 30 cells
+// PRECONDITION: none
+//
+// POSTCONDITION: current life board will be initialized to 30 x 30 'dead' cells, boardSize will be set to MAX_BOARD
 GameOfLife::GameOfLife() {
     // set the board size to the maximum size
     boardSize = MAX_BOARD;
@@ -49,6 +75,10 @@ GameOfLife::GameOfLife() {
     }
 }
 
+// overloaded constructor, initializes game to boardSize x boardSize cells
+// PRECONDITION: boardSize must not be bigger than MAX_BOARD, or the game will be initialized incorrectly
+//
+// POSTCONDITION: current life board will be initialized to boardSize x boardSize 'dead' cells
 GameOfLife::GameOfLife(size_t boardSize) {
     if (boardSize <= MAX_BOARD){
         // set boardSize to the specified value
@@ -71,12 +101,18 @@ GameOfLife::GameOfLife(size_t boardSize) {
     }
 }
 
-// Destructor
+// Destructor, unused since no memory is allocated
 GameOfLife::~GameOfLife() {
 
 }
 
-// Public Methods
+/*** Public Methods ***/
+
+// seeds the board with a given file, characters in the file determine the cell's state
+// PRECONDITION: file must contain either the Cell's alive or dead character, no others, and must be
+//  less than boardSize lines, each containing boardSize columns
+//
+// POSTCONDITION: game grid will contain cells in states specified in the file
 int GameOfLife::seedBoard(string fileName) {
     std::fstream seed_file(fileName, std::ios::in); // file containing a matrix of dead and/or alive cells
     std::string line; // holds a line from the file to convert to the board
@@ -123,6 +159,10 @@ int GameOfLife::seedBoard(string fileName) {
     return 0; // success
 }
 
+// seeds board with a given number of cells to set as alive
+// PRECONDITION: seeds must be less than boardSize * boardSize
+//
+// POSTCONDITION: seeds random cells will be set to alive
 int GameOfLife::seedBoard(size_t seeds) {
     // check if seed is too large for matrix
     if (seeds > (boardSize * boardSize)){
@@ -140,7 +180,7 @@ int GameOfLife::seedBoard(size_t seeds) {
         y = rand() % boardSize; // random number between 0 and boardSize - 1
 
         if (!currentLife[x][y].getState()){
-            // if the cell is not alive, make it alive, decrease number of seeded cells
+            // if the cell is not alive, make it alive, decrease number of seeded cells needed by 1
             currentLife[x][y].setState(true);
             seeds--;
         }
@@ -153,7 +193,10 @@ int GameOfLife::seedBoard(size_t seeds) {
     return 0; // success
 }
 
-// runs the game of life
+// runs the game of life one generation
+// PRECONDITION: board must be seeded first
+//
+// POSTCONDITION: next generation of cells will be computed and printed
 void GameOfLife::run() {
     // iterate over each cell and generate the next generation
     nextGeneration();
@@ -161,6 +204,10 @@ void GameOfLife::run() {
     std::cout << *this;
 }
 
+// runs the game of life numberOfIterations generations
+// PRECONDITION: board must be seeded first
+//
+// POSTCONDITION: next generation of cells will be computed and printed numberOfIterations times
 void GameOfLife::run(unsigned int numberOfIterations) {
     for (int i = 0; i < numberOfIterations; i++){
         nextGeneration();
@@ -169,7 +216,30 @@ void GameOfLife::run(unsigned int numberOfIterations) {
     }
 }
 
-// decided the cells fate based on how many neighbors are alive
+// loops through each cell and calls functions to compute what it should be in the next generation
+// PRECONDITION: board must be seeded first
+//
+// POSTCONDITION: currentLife will be used to generate nextLife, then the boards will be swapped
+void GameOfLife::nextGeneration() {
+    for(int i = 0; i < boardSize; i++){
+        for(int j = 0; j < boardSize; j++){
+            checkCell(i, j);
+        }
+    }
+
+    // swap this generation with the next
+    // this is the only solution I could find to swap arrays, simply assigning one to the other
+    // threw an error
+    std::swap(currentLife, nextLife);
+}
+
+/*** Private Methods ***/
+
+// decided the cells fate based on how many neighbors are alive, accessory to checkCell function
+// this function sets the rules of the game for each cell
+// PRECONDITION: must be called from checkCell function only
+//
+// POSTCONDITION: cell will be set to alive or dead in the next generation based on its number of neighbors
 void GameOfLife::cellsFate(int r, int c, int neighbors) {
     // check state of cell currently
     if (currentLife[r][c].getState()){
@@ -185,6 +255,11 @@ void GameOfLife::cellsFate(int r, int c, int neighbors) {
     }
 }
 
+// checks the number of alive cells neighboring the cell of interest, accessory function to nextGeneration
+// PRECONDITION: must be called from nextGeneration function only
+//
+// POSTCONDITION: will compute the number of alive neighbors for a cell and call cellsFate to decide what the cell will
+//  be in the next iteration
 void GameOfLife::checkCell(int r, int c){
 
     int neighborsAlive = 0; // tally of the number of the cells neighbors that are alive
@@ -214,19 +289,15 @@ void GameOfLife::checkCell(int r, int c){
     cellsFate(r, c, neighborsAlive);
 }
 
-void GameOfLife::nextGeneration() {
-    for(int i = 0; i < boardSize; i++){
-        for(int j = 0; j < boardSize; j++){
-            checkCell(i, j);
-        }
-    }
-
-   // swap this generation with the next
-    std::swap(currentLife, nextLife);
-}
+/*** Friend Functions ***/
 
 namespace csci2312 {
-    ostream &operator<<(ostream &out, const GameOfLife &board) {
+
+    // prints the game board to an ostream object (console or file)
+    // PRECONDITION: board must be seeded
+    //
+    // POSTCONDITION: game will be formatted and printed to stream
+    ostream &operator << (ostream &out, const GameOfLife &board) {
         for (int i = 0; i < board.boardSize; i++) {
             for (int j = 0; j < board.boardSize; j++) {
                 out << board.currentLife[i][j];
@@ -240,6 +311,10 @@ namespace csci2312 {
         return out;
     }
 
+    // prints a cell to an ostream object (console or file)
+    // PRECONDITION: cell must be initialized (game board must be created first)
+    //
+    // POSTCONDITION: cell will be formatted and printed to stream
     ostream& operator << (ostream& out, const Cell& cell) {
         if (cell.getState()) {
             out << cell.alive;
